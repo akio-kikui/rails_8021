@@ -1,0 +1,37 @@
+# Development Dockerfile for Rails 8.0.2.1
+FROM ruby:3.2.3
+
+# Install dependencies for development
+RUN apt-get update -qq && apt-get install -y \
+    nodejs \
+    npm \
+    postgresql-client \
+    build-essential \
+    libpq-dev \
+    git \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy Gemfile and install gems
+COPY Gemfile Gemfile.lock ./
+RUN bundle config set --local disable_ssl_cert_verification true && bundle install
+
+# Copy package.json and install node modules (if they exist)
+COPY package.json ./
+COPY yarn.loc[k] ./
+RUN npm install
+
+# Copy the rest of the application
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p tmp/pids
+
+# Expose port 3000
+EXPOSE 3000
+
+# Start the server in development mode
+CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]
