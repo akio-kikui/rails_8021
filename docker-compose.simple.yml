@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: rails_8021_development
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+  
+  # Simple Rails development setup
+  web:
+    image: ruby:3.2.3
+    working_dir: /app
+    command: bash -c "gem install rails -v 8.0.2.1 && bundle install && rm -f tmp/pids/server.pid && bundle exec rails db:prepare && bundle exec rails server -b 0.0.0.0"
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/rails_8021_development
+      RAILS_ENV: development
+      BUNDLE_SSL_VERIFY_NONE: 1
+    stdin_open: true
+    tty: true
+
+volumes:
+  postgres_data:
